@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.Vault;
+import net.milkbowl.vault.VaultTracker;
 import net.milkbowl.vault.economy.AbstractEconomy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -41,6 +43,7 @@ public class Economy_Gringotts extends AbstractEconomy {
     private final String name = "Gringotts";
     private Plugin plugin = null;
     private Gringotts gringotts = null;
+    public VaultTracker tracker = Vault.tracker;
 
     public Economy_Gringotts(Plugin plugin) {
         this.plugin = plugin;
@@ -255,12 +258,14 @@ public class Economy_Gringotts extends AbstractEconomy {
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String playerName, String worldName, double amount) {
+    public EconomyResponse withdrawPlayer(String playerName, String sourceName, double amount) {
+        tracker.logTransaction(playerName, sourceName, amount * -1, getBalance(playerName));
         return withdrawPlayer(playerName, amount);
     }
 
     @Override
-    public EconomyResponse depositPlayer(String playerName, String worldName, double amount) {
+    public EconomyResponse depositPlayer(String playerName, String sourceName, double amount) {
+        tracker.logTransaction(playerName, sourceName, amount, getBalance(playerName));
         return depositPlayer(playerName, amount);
     }
 

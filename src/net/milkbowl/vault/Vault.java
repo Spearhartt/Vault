@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.chat.Chat;
-import net.milkbowl.vault.chat.plugins.Chat_DroxPerms;
 import net.milkbowl.vault.chat.plugins.Chat_GroupManager;
 import net.milkbowl.vault.chat.plugins.Chat_OverPermissions;
 import net.milkbowl.vault.chat.plugins.Chat_Permissions3;
@@ -41,7 +40,6 @@ import net.milkbowl.vault.chat.plugins.Chat_rscPermissions;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.plugins.Economy_BOSE7;
 import net.milkbowl.vault.economy.plugins.Economy_CommandsEX;
-import net.milkbowl.vault.economy.plugins.Economy_Craftconomy3;
 import net.milkbowl.vault.economy.plugins.Economy_CurrencyCore;
 import net.milkbowl.vault.economy.plugins.Economy_DigiCoin;
 import net.milkbowl.vault.economy.plugins.Economy_Dosh;
@@ -60,7 +58,6 @@ import net.milkbowl.vault.economy.plugins.Economy_iConomy6;
 import net.milkbowl.vault.economy.plugins.Economy_SDFEconomy;
 import net.milkbowl.vault.economy.plugins.Economy_Minefaconomy;  
 import net.milkbowl.vault.permission.Permission;
-import net.milkbowl.vault.permission.plugins.Permission_DroxPerms;
 import net.milkbowl.vault.permission.plugins.Permission_GroupManager;
 import net.milkbowl.vault.permission.plugins.Permission_OverPermissions;
 import net.milkbowl.vault.permission.plugins.Permission_Permissions3;
@@ -113,6 +110,7 @@ public class Vault extends JavaPlugin {
     private ServicesManager sm;
     private Metrics metrics;
     private Vault plugin;
+    public static VaultTracker tracker;
 
     @Override
     public void onDisable() {
@@ -136,6 +134,9 @@ public class Vault extends JavaPlugin {
         loadEconomy();
         loadPermission();
         loadChat();
+
+        VaultTracker.initialize();
+        tracker = VaultTracker.instance;
 
         getCommand("vault-info").setExecutor(this);
         getCommand("vault-convert").setExecutor(this);
@@ -210,9 +211,6 @@ public class Vault extends JavaPlugin {
         // Try to load OverPermissions
         hookChat("OverPermissions", Chat_OverPermissions.class, ServicePriority.Highest, "com.overmc.overpermissions.internal.OverPermissions");
 
-        // Try to load DroxPerms Chat
-        hookChat("DroxPerms", Chat_DroxPerms.class, ServicePriority.Lowest, "de.hydrox.bukkit.DroxPerms.DroxPerms");
-
         // Try to load bPermssions 2
         hookChat("bPermssions2", Chat_bPermissions2.class, ServicePriority.Highest, "de.bananaco.bpermissions.api.ApiLayer");
 
@@ -256,9 +254,6 @@ public class Vault extends JavaPlugin {
 
         // Try to load McMoney
         hookEconomy("McMoney", Economy_McMoney.class, ServicePriority.Normal, "boardinggamer.mcmoney.McMoneyAPI");
-
-        // Try to load Craftconomy3
-        hookEconomy("CraftConomy3", Economy_Craftconomy3.class, ServicePriority.Normal, "com.greatmancode.craftconomy3.tools.interfaces.BukkitLoader");
 
         // Try to load eWallet
         hookEconomy("eWallet", Economy_eWallet.class, ServicePriority.Normal, "me.ethan.eWallet.ECO");
@@ -321,9 +316,6 @@ public class Vault extends JavaPlugin {
 
         // Try to load PermissionsBukkit
         hookPermission("PermissionsBukkit", Permission_PermissionsBukkit.class, ServicePriority.Normal, "com.platymuus.bukkit.permissions.PermissionsPlugin");
-
-        // Try to load DroxPerms
-        hookPermission("DroxPerms", Permission_DroxPerms.class, ServicePriority.High, "de.hydrox.bukkit.DroxPerms.DroxPerms");
 
         // Try to load SimplyPerms
         hookPermission("SimplyPerms", Permission_SimplyPerms.class, ServicePriority.Highest, "net.crystalyx.bukkit.simplyperms.SimplyPlugin");
@@ -456,7 +448,8 @@ public class Vault extends JavaPlugin {
         }
 
         sender.sendMessage("This may take some time to convert, expect server lag.");
-        for (OfflinePlayer op : Bukkit.getServer().getOfflinePlayers()) {
+        for (OfflinePlayer preOp : Bukkit.getServer().getOfflinePlayers()) {
+            String op = preOp.getName();
             if (econ1.hasAccount(op)) {
                 if (econ2.hasAccount(op)) {
                     continue;
